@@ -1,20 +1,37 @@
 import React, { useContext } from "react";
 import img from "../../assets/images/login/login.svg";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Providers/AuthProviders";
+import axios from "axios";
 
 export default function LogIn() {
   const { signIn } = useContext(AuthContext);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  console.log(location);
+
   const handleLogin = (e) => {
     e.preventDefault();
     const form = e.target;
     const email = form.email.value;
     const password = form.password.value;
-    console.log(email, password);
+
     signIn(email, password)
       .then((result) => {
-        const user = result.user;
-        console.log(user);
+        const loggedInUser = result.user;
+        console.log(loggedInUser);
+        const user = { email };
+
+        //get access tokon
+        axios
+          .post("http://localhost:5000/jwt", user, { withCredentials: true })
+          .then((res) => {
+            console.log(res.data);
+            if (res.data.success) {
+              navigate(location?.state ? location?.state : "/");
+            }
+          });
       })
       .catch((error) => console.log(error));
   };

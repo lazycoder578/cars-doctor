@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import React, { createContext, useEffect, useState } from "react";
 import app from "../firebase/firebase.config";
+import axios from "axios";
 
 export const AuthContext = createContext();
 const auth = getAuth(app);
@@ -25,17 +26,25 @@ export default function AuthProviders({ children }) {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const logOut = () =>{
+  const logOut = () => {
     setLoading(true);
     return signOut(auth);
-  }
-
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       console.log("current user", currentUser);
       setLoading(false);
+      if (currentUser) {
+        axios
+          .post(loggedUser, {
+            withCredentials: true,
+          })
+          .then((res) => {
+            console.log('token response',res.data);
+          });
+      }
     });
     return () => {
       return unsubscribe();
@@ -47,7 +56,7 @@ export default function AuthProviders({ children }) {
     loading,
     createUser,
     signIn,
-    logOut
+    logOut,
   };
 
   return (
